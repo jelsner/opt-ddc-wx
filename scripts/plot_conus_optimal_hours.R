@@ -18,7 +18,8 @@ parse_args <- function(args) {
     output_csv = "data/output/conus/conus_optimal_hours.csv",
     output_png = "data/output/conus/conus_optimal_hours.png",
     pattern = "^conus_era5_\\d{4}_\\d{2}\\.nc$",
-    min_temp_f = -60,
+    year = NULL,
+    min_temp_f = 40,
     max_wind_mps = 5,
     title = NULL
   )
@@ -37,7 +38,7 @@ parse_args <- function(args) {
       stop("Missing value for option: ", key, call. = FALSE)
     }
     value <- args[[i + 1]]
-    if (name %in% c("min_temp_f", "max_wind_mps")) {
+    if (name %in% c("min_temp_f", "max_wind_mps", "year")) {
       value <- as.numeric(value)
     }
     opts[[name]] <- value
@@ -190,12 +191,14 @@ get_border_data <- function(lon_range, lat_range) {
 }
 
 plot_results <- function(results, opts) {
+  year_label <- if (!is.null(opts$year)) paste0(" (", opts$year, ")") else ""
   title <- opts$title %||% paste0(
     "Optimal Playable Daylight Hours: temp > ",
     opts$min_temp_f,
     " F and wind < ",
     opts$max_wind_mps,
-    " m/s"
+    " m/s",
+    year_label
   )
   lon_range <- range(results$lon)
   lat_range <- range(results$lat)
@@ -244,6 +247,9 @@ plot_results <- function(results, opts) {
 
 main <- function() {
   opts <- parse_args(commandArgs(trailingOnly = TRUE))
+  if (!is.null(opts$year)) {
+    opts$pattern <- paste0("^conus_era5_", opts$year, "_\\d{2}\\.nc$")
+  }
   files <- list.files(opts$input_dir, pattern = opts$pattern, full.names = TRUE)
   if (length(files) == 0) {
     stop("No NetCDF files matched ", opts$pattern, " in ", opts$input_dir, call. = FALSE)

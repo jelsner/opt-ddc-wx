@@ -33,7 +33,7 @@ analyze_ddc_file <- function(file_path, lat, lon) {
     mutate(
       hrs_since_sunrise = as.numeric(difftime(datetime_local, sunrise, units = "hours")),
       hour_bin = floor(hrs_since_sunrise) + 1,  # Bin 0–1hr as 1, 1–2hr as 2, etc.
-      ddc_ok = temp_c > 10 & wind_mps < 5
+      ddc_ok = temp_c > (40 - 32) * 5 / 9 & wind_mps < 5
     )
   
   return(df)
@@ -41,7 +41,7 @@ analyze_ddc_file <- function(file_path, lat, lon) {
 
 # Accumulate data across months and plot
 analyze_ddc_by_sunrise <- function(folder, lat, lon, city) {
-  files <- list.files(folder, pattern = "^data_2020_\\d{2}\\.nc$", full.names = TRUE)
+  files <- list.files(folder, pattern = "^data_2021_\\d{2}\\.nc$", full.names = TRUE)
   df_all <- map_dfr(files, analyze_ddc_file, lat = lat, lon = lon)
   
   df_summary <- df_all %>%
@@ -66,4 +66,3 @@ analyze_ddc_by_sunrise <- function(folder, lat, lon, city) {
 }
 
 analyze_ddc_by_sunrise("data/output/milwaukee", lat = 43.0389, lon = -87.9065, city = "Milwaukee")
-

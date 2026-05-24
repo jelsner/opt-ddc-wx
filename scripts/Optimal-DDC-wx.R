@@ -28,7 +28,7 @@ analyze_ddc_file <- function(file_path, lat, lon) {
     filter(datetime >= sunrise & datetime <= sunset)
   
   df_ddc <- df_joined %>%
-    filter(temp_c > 10, wind_mps < 2.57)  # < 5 knots
+    filter(temp_c > (40 - 32) * 5 / 9, wind_mps < 2.57)  # temp > 40 F, wind < 5 knots
   
   tibble(
     month = df_joined$month[1],
@@ -41,7 +41,7 @@ analyze_ddc_file <- function(file_path, lat, lon) {
 # === Loop through monthly files for a single year (here: 2020) ===
 
 analyze_ddc_year <- function(folder, lat, lon) {
-  files <- list.files(folder, pattern = "^data_2020_\\d{2}\\.nc$", full.names = TRUE)
+  files <- list.files(folder, pattern = "^data_2021_\\d{2}\\.nc$", full.names = TRUE)
   summary_df <- map_dfr(files, analyze_ddc_file, lat = lat, lon = lon)
   
   summary_monthly <- summary_df %>%
@@ -107,4 +107,3 @@ Optimal_DDC <- analyze_ddc_all_years(
   lat = 30.4383,
   lon = -84.2807,
   years = 2020:2022)
-
