@@ -14,7 +14,8 @@ python3 scripts/download_era5_conus_by_month.py --year 2020 --output-dir data/ou
 This requires the Python `cdsapi` package and a configured CDS API key.
 
 Then compute and plot the number of daylight hours where temperature is above 60 F
-and 10 m wind speed is below 5 m/s:
+and 10 m wind speed is below 5 m/s. The plot includes county, state, and
+country borders and requires the R `maps` package.
 
 ```sh
 Rscript scripts/plot_conus_optimal_hours.R \

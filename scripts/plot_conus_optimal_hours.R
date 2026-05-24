@@ -18,7 +18,7 @@ parse_args <- function(args) {
     output_csv = "data/output/conus/conus_optimal_hours.csv",
     output_png = "data/output/conus/conus_optimal_hours.png",
     pattern = "^conus_era5_\\d{4}_\\d{2}\\.nc$",
-    min_temp_f = 60,
+    min_temp_f = -60,
     max_wind_mps = 5,
     title = NULL
   )
@@ -159,6 +159,36 @@ summarise_file <- function(file_path, grid, opts, totals) {
   totals
 }
 
+filter_map_extent <- function(map_df, lon_range, lat_range, pad = 1) {
+  map_df %>%
+    filter(
+      .data$long >= lon_range[[1]] - pad,
+      .data$long <= lon_range[[2]] + pad,
+      .data$lat >= lat_range[[1]] - pad,
+      .data$lat <= lat_range[[2]] + pad
+    )
+}
+
+get_border_data <- function(lon_range, lat_range) {
+  if (!requireNamespace("maps", quietly = TRUE)) {
+    stop(
+      "The 'maps' R package is required to draw state, county, and country borders. ",
+      "Install it with install.packages('maps') and rerun this script.",
+      call. = FALSE
+    )
+  }
+
+  list(
+    counties = filter_map_extent(ggplot2::map_data("county"), lon_range, lat_range),
+    states = filter_map_extent(ggplot2::map_data("state"), lon_range, lat_range),
+    countries = filter_map_extent(
+      ggplot2::map_data("world", region = c("USA", "Canada", "Mexico")),
+      lon_range,
+      lat_range
+    )
+  )
+}
+
 plot_results <- function(results, opts) {
   title <- opts$title %||% paste0(
     "Optimal Playable Daylight Hours: temp > ",
@@ -171,9 +201,36 @@ plot_results <- function(results, opts) {
   lat_range <- range(results$lat)
   if (diff(lon_range) == 0) lon_range <- lon_range + c(-0.25, 0.25)
   if (diff(lat_range) == 0) lat_range <- lat_range + c(-0.25, 0.25)
+  borders <- get_border_data(lon_range, lat_range)
 
   ggplot(results, aes(x = lon, y = lat, fill = optimal_hours)) +
     geom_raster() +
+    geom_polygon(
+      data = borders$counties,
+      aes(x = long, y = lat, group = group),
+      inherit.aes = FALSE,
+      fill = NA,
+      color = "grey35",
+      linewidth = 0.08,
+      alpha = 0.35
+    ) +
+    geom_polygon(
+      data = borders$states,
+      aes(x = long, y = lat, group = group),
+      inherit.aes = FALSE,
+      fill = NA,
+      color = "grey15",
+      linewidth = 0.25,
+      alpha = 0.75
+    ) +
+    geom_polygon(
+      data = borders$countries,
+      aes(x = long, y = lat, group = group),
+      inherit.aes = FALSE,
+      fill = NA,
+      color = "black",
+      linewidth = 0.45
+    ) +
     coord_quickmap(xlim = lon_range, ylim = lat_range, expand = FALSE) +
     scale_fill_viridis_c(name = "Hours", option = "C", na.value = "grey90") +
     labs(title = title, x = "Longitude", y = "Latitude") +
