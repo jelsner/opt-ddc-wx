@@ -258,8 +258,8 @@ plot_monthly_percentiles <- function(results) {
   lat_range <- range(results$lat)
   borders <- get_border_data(lon_range, lat_range)
   caption <- paste(
-    "Based on the number of daylight hours (2020-2025) where it is warmer than 4 C (40 F)",
-    "and winds are lighter than 5 m/s (11 mph).",
+    "Based on the number of daylight hours (2020-2025) warmer than 4 C (40 F)",
+    "and with winds lighter than 5 m/s (11 mph).",
     "ERA5 data from climate.copernicus.eu/climate-reanalysis"
   )
 
@@ -287,11 +287,11 @@ plot_monthly_percentiles <- function(results) {
       name = NULL,
       values = c("Unfavorable" = "#8b5a2b", "Other" = "grey82", "Favorable" = "#2f855a"),
       breaks = c("Unfavorable", "Favorable"),
-      labels = c("Unfavorable (Bottom 20%)", "Favorable (Top 20%)"),
+      labels = c("Least favorable (Bottom 20%)", "Most favorable (Top 20%)"),
       drop = FALSE
     ) +
     labs(
-      title = "Favorable and unfavorable places to play DDC by month in the continental U.S.",
+      title = "Favorable and unfavorable places to play DDC in the continental U.S.",
       x = NULL,
       y = NULL,
       caption = caption
