@@ -147,6 +147,43 @@ Use `plot = FALSE` to calculate the table without displaying a plot.
 Custom `probs`, `end_year`, `window_days`, and numeric day-of-year inputs
 are supported as in the probability workflow.
 
+## Tallahassee quantile regression trends
+
+`scripts/tallahassee_wind_trends.R` tests linear trends in the .50, .75,
+and .90 conditional wind-speed quantiles, separately for 9 am–3 pm Eastern.
+It compares all calendar dates with the requested date's ±2-day window:
+
+```r
+# Install once; a project-local library keeps dependencies isolated.
+dir.create("data/r-library", recursive = TRUE, showWarnings = FALSE)
+install.packages("quantreg", lib = "data/r-library", repos = "https://cloud.r-project.org")
+```
+
+```sh
+Rscript scripts/tallahassee_wind_trends.R 10-24 999
+```
+
+The all-date model includes annual and semiannual sine/cosine seasonal
+terms; the narrow date-window model includes only intercept and year.
+The year coefficient is reported in **mph per decade**. Inference uses
+`quantreg`'s cluster wild-gradient bootstrap with calendar-year clusters
+and 999 replicates, with a t reference distribution using 29 degrees of
+freedom for 30 years. This allows dependence within years but assumes
+independent clusters across years. Pointwise 95% intervals are unadjusted;
+the primary significance criterion is a Benjamini–Hochberg adjusted p-value
+below .05 across all 42 hour/quantile/scope tests. Within-scope adjusted
+p-values are also supplied. Each model has a reproducible seed derived
+from base seed 20261025 plus its job index. On macOS/Linux the script uses
+up to four workers; `tlh_wind_trends(cores = 1)` runs sequentially.
+
+Outputs in `data/output/tlh_trends/` include `quantile_trends.csv`, slope
+plots, yearly data coverage, fitted coefficients and bootstrap draws,
+and notes with package versions and warnings. Trend slopes describe a
+linear change in conditional quantiles, not a regression on 30 annual
+quantile estimates. Rounded winds and calm reports produce ties; a
+statistical station trend does not establish a climate cause. Instrument
+changes, observing practice, and exposure may also contribute.
+
 ## CONUS Playable-Hours Map
 
 Download monthly ERA5 hourly grids for the conterminous US:
